@@ -1,5 +1,5 @@
 import numpy as np
-from multi_armed_bandit.BernoulliBandit import BernoulliBandit
+
 
 class Solver:
     """多臂老虎机算法基本框架"""

@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
 
 class BernoulliBandit:
     """伯努利多臂老虎机，输入K表示拉杆个数"""
@@ -18,8 +16,3 @@ class BernoulliBandit:
             return 0
 
 
-    np.random.seed(1)
-    K = 10
-    bandit_10_arm = BernoulliBandit(K)
-    print("随机生成了一个%d臂伯努利老虎机" % K)
-    print("获奖概率最大的拉杆为%d号,其获奖概率为%.4f" % (bandit_10_arm.best_idx, bandit_10_arm.best_prob))
