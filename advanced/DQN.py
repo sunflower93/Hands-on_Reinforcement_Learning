@@ -39,17 +39,13 @@ class Qnet(torch.nn.Module):
 
 class DQN:
     ''' DQN算法 '''
-    def __init__(self, state_dim, hidden_dim, action_dim, learning_rate, gamma,
-                 epsilon, target_update, device):
+    def __init__(self, state_dim, hidden_dim, action_dim, learning_rate, gamma, epsilon, target_update, device):
         self.action_dim = action_dim
-        self.q_net = Qnet(state_dim, hidden_dim,
-                          self.action_dim).to(device)  # Q网络
+        self.q_net = Qnet(state_dim, hidden_dim, self.action_dim).to(device)  # Q网络
         # 目标网络
-        self.target_q_net = Qnet(state_dim, hidden_dim,
-                                 self.action_dim).to(device)
+        self.target_q_net = Qnet(state_dim, hidden_dim, self.action_dim).to(device)
         # 使用Adam优化器
-        self.optimizer = torch.optim.Adam(self.q_net.parameters(),
-                                          lr=learning_rate)
+        self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=learning_rate)
         self.gamma = gamma  # 折扣因子
         self.epsilon = epsilon  # epsilon-贪婪策略
         self.target_update = target_update  # 目标网络更新频率
