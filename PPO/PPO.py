@@ -15,7 +15,6 @@ class PolicyNet(torch.nn.Module):
         return F.softmax(self.fc2(x), dim=1)
 
 
-
 class ValueNet(torch.nn.Module):
     def __init__(self, state_dim, hidden_dim):
         super(ValueNet, self).__init__()
@@ -27,18 +26,17 @@ class ValueNet(torch.nn.Module):
         return self.fc2(x)
 
 
-
 class PPO:
-    """PPO截断算法，一般情况表现优于惩罚方法，所以普遍使用PPO截断算法"""
+    ''' PPO算法,采用截断方式 '''
     def __init__(self, state_dim, hidden_dim, action_dim, actor_lr, critic_lr, lmbda, epochs, eps, gamma, device):
-        self.actor = PolicyNet(state_dim, hidden_dim, action_dim)
-        self.critic = ValueNet(state_dim, hidden_dim)
+        self.actor = PolicyNet(state_dim, hidden_dim, action_dim).to(device)
+        self.critic = ValueNet(state_dim, hidden_dim).to(device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         self.gamma = gamma
         self.lmbda = lmbda
-        self.epochs = epochs
-        self.eps = eps
+        self.epochs = epochs  # 一条序列的数据用于训练轮数
+        self.eps = eps  # PPO中截断范围的参数
         self.device = device
 
     def take_action(self, state):
@@ -54,7 +52,6 @@ class PPO:
         rewards = torch.tensor(transition_dict['rewards'], dtype=torch.float).view(-1, 1).to(self.device)
         next_states = torch.tensor(transition_dict['next_states'], dtype=torch.float).to(self.device)
         dones = torch.tensor(transition_dict['dones'], dtype=torch.float).view(-1, 1).to(self.device)
-
         td_target = rewards + self.gamma * self.critic(next_states) * (1 - dones)
         td_delta = td_target - self.critic(states)
         advantage = rl_utils.compute_advantage(self.gamma, self.lmbda, td_delta.cpu()).to(self.device)
@@ -64,8 +61,8 @@ class PPO:
             log_probs = torch.log(self.actor(states).gather(1, actions))
             ratio = torch.exp(log_probs - old_log_probs)
             surr1 = ratio * advantage
-            surr2 = torch.clamp(ratio, 1 - self.eps, 1 + self.eps) * advantage
-            actor_loss = torch.mean(-torch.min(surr1, surr2))
+            surr2 = torch.clamp(ratio, 1 - self.eps, 1 + self.eps) * advantage  # 截断
+            actor_loss = torch.mean(-torch.min(surr1, surr2))  # PPO损失函数
             critic_loss = torch.mean(F.mse_loss(self.critic(states), td_target.detach()))
             self.actor_optimizer.zero_grad()
             self.critic_optimizer.zero_grad()
